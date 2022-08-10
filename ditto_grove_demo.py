@@ -19,24 +19,30 @@ import websocket
 import raspberry_thing
 
 DITTO_IP = "localhost"
-DITTO_PORT = "8000"
+DITTO_PORT = "8080"
 websocketOpen = False
-thing = raspberry_thing.RaspberryDemoThing()
+thing = raspberry_thing.RaspberryThing()
+
+def on_new_trust_agent_value(trust_agent):
+    if websocketOpen and math.isnan(trust_agent) == False: #check if it is the same trust agent version, and what the current status is
+        send_modify_message(thing.create_trust_agent_change_message(trust_agent))
 
 
 def on_new_illumination_value(illumination):
     if websocketOpen and math.isnan(illumination) == False:
-        send_modify_message(thing.create_illumination_change_message(illumination))
+        pass
+        # send_modify_message(thing.create_illumination_change_message(illumination))
 
 
 def on_new_temperature_value(temperature, humidity):
     if websocketOpen and math.isnan(temperature) == False and math.isnan(humidity) == False:
-        send_modify_message(thing.create_temperature_change_message(temperature, humidity))
+        pass
+        # send_modify_message(thing.create_temperature_change_message(temperature, humidity))
 
 
 def on_message(ws, message):
     json_message = json.loads(message)
-    thing.handle_websocket_message(json_message)
+    # thing.handle_websocket_message(json_message)
 
 
 def send_modify_message(message):
@@ -63,13 +69,14 @@ def on_open(ws):
     global websocketOpen
     websocketOpen = True
     # start listening for events and messages
-    ws.send("START-SEND-MESSAGES")
-    ws.send("START-SEND-EVENTS")
+    ws.send("{}")
+    # ws.send("START-SEND-MESSAGES")
+    # ws.send("START-SEND-EVENTS")
 
 
 def start_websocket():
     print('Establishing websocket connection ...')
-    ws_address = "ws://" + DITTO_IP + ":" + DITTO_PORT + "/ws/1"
+    ws_address = "ws://" + DITTO_IP + ":" + DITTO_PORT + "/ws/2"
     basic_auth = 'Authorization: Basic {}'.format(raspberry_thing.get_b64_auth())
     global ws
     ws = websocket.WebSocketApp(ws_address,
@@ -83,8 +90,8 @@ def start_websocket():
 
 if __name__ == "__main__":
     # init our raspberry thing
-    thing.start_polling_illumination(on_new_illumination_value)
-    thing.start_polling_temperatures(on_new_temperature_value)
+    # thing.start_polling_illumination(on_new_illumination_value)
+    # thing.start_polling_temperatures(on_new_temperature_value)
 
     # start websocket
     start_websocket()
